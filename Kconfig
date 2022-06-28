@@ -69,6 +69,8 @@ menu "TFT_eSPI"
             bool "ILI9225"
         config TFT_GC9A01_DRIVER
             bool "GC9A01"
+        config TFT_SSD1283A_DRIVER
+            bool "SSD1283A"
     endchoice
 
     if TFT_ST7735_DRIVER || TFT_ST7789_DRIVER || TFT_ST7789_2_DRIVER || TFT_ILI9341_DRIVER || TFT_ILI9341_2_DRIVER

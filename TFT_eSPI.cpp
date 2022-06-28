@@ -755,6 +755,9 @@ void TFT_eSPI::init(uint8_t tc)
 #elif defined (HX8357C_DRIVER)
     #include "TFT_Drivers/HX8357C_Init.h"
 
+#elif defined (SSD1283A_DRIVER)
+    #include "TFT_Drivers/SSD1283A_Init.h"
+
 #endif
 
 #ifdef TFT_INVERSION_ON
@@ -851,6 +854,9 @@ void TFT_eSPI::setRotation(uint8_t m)
 
 #elif defined (HX8357C_DRIVER)
     #include "TFT_Drivers/HX8357C_Rotation.h"
+
+#elif defined (SSD1283A_DRIVER)
+    #include "TFT_Drivers/SSD1283A_Rotation.h"
 
 #endif
 
@@ -3232,6 +3238,24 @@ void TFT_eSPI::setWindow(int32_t x0, int32_t y0, int32_t x1, int32_t y1)
   DC_D; tft_Write_16(y1 | (y0 << 8));
   DC_C; tft_Write_8(TFT_RAMWR);
   DC_D;
+#elif defined (SSD1283A_DRIVER)
+  if (rotation & 1) {
+    swap_coord(x0, y0);
+    swap_coord(x1, y1);
+    x0 += 2;
+    x1 += 2;
+  }
+  y0 += 2;
+  y1 += 2;
+  SPI_BUSY_CHECK;
+  DC_C; tft_Write_8(TFT_CASET);
+  DC_D; tft_Write_16(x0 | (x1 << 8));
+  DC_C; tft_Write_8(TFT_PASET);
+  DC_D; tft_Write_16(y0 | (y1 << 8));
+  DC_C; tft_Write_8(0x21);
+  DC_D; tft_Write_16(y0 | (x0 << 8));
+  DC_C; tft_Write_8(TFT_RAMWR);
+  DC_D;
 #else
   #if defined (SSD1963_DRIVER)
     if ((rotation & 0x1) == 0) { swap_coord(x0, y0); swap_coord(x1, y1); }
@@ -3540,7 +3564,7 @@ void TFT_eSPI::drawPixel(int32_t x, int32_t y, uint32_t color)
 
     SPI_BUSY_CHECK;
 
-  #if defined (SSD1351_DRIVER)
+  #if defined (SSD1351_DRIVER) | defined(SSD1283A_DRIVER)
     if (rotation & 0x1) { swap_coord(x, y); }
     // No need to send x if it has not changed (speeds things up)
     if (addr_col != x) {
@@ -3555,6 +3579,10 @@ void TFT_eSPI::drawPixel(int32_t x, int32_t y, uint32_t color)
       DC_D; tft_Write_16(y | (y << 8));
       addr_row = y;
     }
+    #if defined(SSD1283A_DRIVER)
+    DC_C; tft_Write_8(0x21);
+    DC_D; tft_Write_16(y | (x << 8));
+    #endif
   #else
     // No need to send x if it has not changed (speeds things up)
     if (addr_col != x) {
@@ -4236,9 +4264,28 @@ uint32_t TFT_eSPI::color24to16(uint32_t color888)
 void TFT_eSPI::invertDisplay(bool i)
 {
   begin_tft_write();
+  #ifdef SSD1283A_DRIVER
+  switch(getRotation()) {
+    case 1:
+    case 3:
+      writecommand(0x01);
+      writedata(0x01 | ((i) ? 0x00 : 0x20));
+      writedata(0x83);
+      break;
+    case 0:
+    case 2:
+      writecommand(0x01);
+      writedata(0x02 | ((i) ? 0x00 : 0x20));
+      writedata(0x83);
+      break;
+    default:
+      break;
+  }
+  #else
   // Send the command twice as otherwise it does not always work!
   writecommand(i ? TFT_INVON : TFT_INVOFF);
   writecommand(i ? TFT_INVON : TFT_INVOFF);
+  #endif
   end_tft_write();
 }
 

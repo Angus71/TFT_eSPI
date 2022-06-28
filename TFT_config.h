@@ -72,6 +72,8 @@
     #define ILI9225_DRIVER
 #elif defined (CONFIG_TFT_GC9A01_DRIVER)
     #define GC9A01_DRIVER
+#elif defined (CONFIG_TFT_SSD1283A_DRIVER)
+    #define SSD1283A_DRIVER
 #endif
 
 #ifdef CONFIG_TFT_RGB_ORDER

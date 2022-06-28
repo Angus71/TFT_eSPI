@@ -247,6 +247,9 @@
 #elif defined (HX8357C_DRIVER)
      #include "TFT_Drivers/HX8357C_Defines.h"
      #define  TFT_DRIVER 0x835C
+#elif defined (SSD1283A_DRIVER)
+     #include "TFT_Drivers/SSD1283A_Defines.h"
+     #define  TFT_DRIVER 0x1283
 
                               // <<<<<<<<<<<<<<<<<<<<<<<< ADD NEW DRIVER HERE
                               // XYZZY_init.h and XYZZY_rotation.h must also be added in TFT_eSPI.cpp
